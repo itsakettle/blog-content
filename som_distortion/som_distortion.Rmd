@@ -1,0 +1,66 @@
+---
+layout: post
+title:  "Net and object distortion in Self Organising Maps"
+date:   2017-06-23
+comments: true
+categories: som
+feature: assets/img/som_distortion/som_distortion.png
+---
+  
+```{r setup, include=FALSE}
+library(knitr)
+library(data.table)
+library(kohonen)
+library(itsakohonen)
+library(testthat)
+library(assertthat)
+library(ggplot2)
+set.seed(322124)
+knitr::render_jekyll()
+opts_knit$set(base.dir = '~/Moon/')
+knitr::opts_chunk$set(echo = TRUE, fig.path='assets/img/som_distortion/figure/')
+```
+
+
+Recently I read...
+
+Let's start by creating a square of exciting random data and fit a 1 dimensional self organising map with 10 codes (the kohonen package calls them codes).
+
+```{r random_square}
+dt <- data.table(x=runif(n), y=runif(n))
+ggplot(dt) + 
+  geom_point(aes(x=x, y=y), alpha=0.4) +
+  ylim(0, 1) + 
+  xlim(0, 1) +
+  ggtitle('Square of random data')
+
+som.grid <- somgrid(10, 1, topo='rectangular')
+som.model <- som(as.matrix(dt), grid=som.grid)
+```
+
+Here's a visualisation of the SOM showing the number of observations mapped to each code.
+
+```{r random_square_1d_map_plot}
+plot(som.model, type='count')
+```
+
+```{r random_square_1d_feature_plot}
+dt.codes <-  as.data.table(som.model$codes)
+dt.codes[, code := 1:.N]
+dt[, code := som.model$unit.classif]
+
+ggplot(dt, aes(x=x, y=y)) +
+  geom_point(aes(color = as.factor(code)), size=0.5) +
+  geom_label(data=dt.codes, 
+             mapping=aes(x=x, y=y, label=code), size=6) +
+  theme(legend.position="none") +
+  ggtitle('Feature space')
+```
+
+Here's a visualisation of the SOM in the feature space.
+
+# Net Distortion
+
+# Object Distortion
+
+
