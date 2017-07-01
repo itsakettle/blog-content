@@ -2,14 +2,14 @@
 layout: post
 title:  "Rolling a Join"
 date:   2016-09-12
-comments: false
+comments: true
 categories: data.table
 ---
 
 ```{r setup, include=FALSE}
 library(data.table)
 knitr::render_jekyll()
-opts_knit$set(base.dir = '~/Moon/')
+opts_knit$set(base.dir = '~/itsakettle.github.io/')
 knitr::opts_chunk$set(echo = TRUE, fig.path='assets/img/rolling_joins/figure/')
 ```
 
