@@ -17,16 +17,18 @@ library(assertthat)
 library(ggplot2)
 set.seed(322124)
 knitr::render_jekyll()
-opts_knit$set(base.dir = '~/Moon/')
+opts_knit$set(base.dir = '~/itsakettle.github.io/')
+source('lib/neighbours.R')
 knitr::opts_chunk$set(echo = TRUE, fig.path='assets/img/som_distortion/figure/')
 ```
 
 
 Recently I read...
 
-Let's start by creating a square of exciting random data and fit a 1 dimensional self organising map with 10 codes (the kohonen package calls them codes).
+Let's start by creating a square of exciting random data and fit a 1 dimensional self organising map with 10 codes (the kohonen package calls them codes). If you're not familiar with self organising maps you might find the previous post helpful.
 
 ```{r random_square}
+n <- 10000
 dt <- data.table(x=runif(n), y=runif(n))
 ggplot(dt) + 
   geom_point(aes(x=x, y=y), alpha=0.4) +
@@ -34,7 +36,7 @@ ggplot(dt) +
   xlim(0, 1) +
   ggtitle('Square of random data')
 
-som.grid <- somgrid(10, 1, topo='rectangular')
+som.grid <- somgrid(1, 10, topo='rectangular')
 som.model <- som(as.matrix(dt), grid=som.grid)
 ```
 
@@ -43,6 +45,8 @@ Here's a visualisation of the SOM showing the number of observations mapped to e
 ```{r random_square_1d_map_plot}
 plot(som.model, type='count')
 ```
+
+Here's a visualisation of the SOM in the feature space showing which code each data point belongs to (a Voronoi diagram).
 
 ```{r random_square_1d_feature_plot}
 dt.codes <-  as.data.table(som.model$codes)
@@ -57,10 +61,51 @@ ggplot(dt, aes(x=x, y=y)) +
   ggtitle('Feature space')
 ```
 
-Here's a visualisation of the SOM in the feature space.
+# Object Distortion
+
+The paper presents a continuous model of an SOM allowing to define the object and net distortion of a self organising map as... However in practice self organising maps are discrete and we can think of object distortion as when two codes that are near to each other in the feature space are far apart in the map. 
+
+We can identify codes that are close to each other in the feature space but are not neighbours in the map using the Voronoi diagram above but this time we also show the arcs between neighbouring nodes. The function `SomGridArcs` that figures out the arcs can be found [here](https://github.com/itsakettle/blog-content/blob/master/som_distortion/lib/neighbours.R).
+
+```{r random_square_1d_feature_plot_arcs}
+dt.arcs <- SomGridArcs(som.model)
+ggplot(dt, aes(x=x, y=y)) +
+  geom_segment(data=dt.arcs, aes(x=start1, y=start2, xend=end1, yend=end2), alpha=.4) +
+  geom_text(aes(label=code, color = as.factor(code)), size=2) +
+  geom_label(data=dt.codes, 
+             mapping=aes(x=x, y=y, label=code), 
+             size=6) +
+  theme(legend.position="none") +
+  ggtitle('Feature space')
+```
+
+Observe that nodes 2 and 6 are beside each other in the feature space but there are 3 codes (3, 4 and 5) between them in the self organising map. This is an example of object distortion.
 
 # Net Distortion
 
-# Object Distortion
+We can think of net distortion as occuring when two neighbouring codes in the SOM map to points that are far a part in the feature space. 
 
+Below is a slightly altered version of the U-matrix plot from the kohonen package where the distance between codes is indicated by the thickness of the line connecting the codes (I made these changes to a forked version of the kohonen package which can be found [here](https://github.com/itsakettle/kohonen). The thicker the line, the closer the codes.
+
+```{r random_square_1d_map_umatrix}
+plot(som.model, type='dist.neighbours', draw.arcs=TRUE)
+```
+
+Observe codes 2 and 3 are neighbours in the map but are far from each other in the feature space. The same applies for codes 6 and 7. Since we are in low dimensions it is possible to visualise the feature space.
+
+```{r random_square_1d_feature_plot_arcs_2}
+dt.arcs <- SomGridArcs(som.model)
+ggplot(dt, aes(x=x, y=y)) +
+  geom_segment(data=dt.arcs, aes(x=start1, y=start2, xend=end1, yend=end2), alpha=.4) +
+  geom_text(aes(label=code, color = as.factor(code)), size=2) +
+  geom_label(data=dt.codes, 
+             mapping=aes(x=x, y=y, label=code), 
+             size=6) +
+  theme(legend.position="none") +
+  ggtitle('Feature space')
+```
+
+We can see that when compared to the distance between other neighbouring codes codes 2 and 3 are actually not that far away from each other. So this is actually a pretty bad example of net distortion!!! However it does emphasise why net distortion is most easily described using a continuous SOM model where discontinuity is more clear cut. A discrete mapping from the SOM to the feature space means that net distortion isn't as clear cut. Let's demonstrate a clearer example.
+
+# The letter T
 
