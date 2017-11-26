@@ -1,0 +1,90 @@
+---
+layout: post
+title:  "The NCT"
+date:   2017-11-26
+comments: true
+categories: nct
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+knitr::render_jekyll()
+opts_knit$set(base.dir = '~/itsakettle.github.io/')
+knitr::opts_chunk$set(echo = TRUE, fig.path='assets/img/nct/figure/')
+```
+
+```{r load-packages, include=FALSE}
+library(data.table)
+library(ggplot2)
+```
+
+To improve road safety all cars in Ireland of a certain age must pass the [National Car Test (NCT)](https://www.ncts.ie). Failure rates by make and model of car in 2016 were recently published so I thought I'd have a quick poke around.
+
+## Get the Data
+
+You can get the data [here](https://data.gov.ie/dataset/2016-make-model-year-failures-at-nct). 
+
+There's a lot of variables here so to simplifies things I just looked at:
+
+VehicleMake - The make of the car.
+YearOfBirth - The year the car was manufactured.
+Total - The total number of cars.
+PASS - The number of cars that passed the NCT.
+ 
+```{r get-the-data}
+dt <- fread('data/Make Model Data 2016.csv', skip=4)
+# We could remove all the columns but more readable to just select them
+columns_to_select <- c('VehicleMake', 'YearOfBirth', 'Total', 'PASS')
+dt <- dt[, columns_to_select, with=FALSE]
+# Make the names nicer
+nicer_column_names <- c('vehicle_make', 'year_of_birth', 'total', 'pass')
+setnames(dt, columns_to_select, nicer_column_names)
+print(dt)
+```
+
+## Top 5
+
+To really simplify things let's just look at the top 5 car manufacturers and put the rest into a category called `other`.
+
+```{r top-five}
+# Get the top 5 vehicle makes
+dt_top_five_vehicle_makes <- dt[, .(total=sum(total)), 
+                                  by=.(vehicle_make)][order(-total),][1:5, ]
+
+print(dt_top_five_vehicle_makes)
+
+# Select the top five makes
+dt[!(vehicle_make %in% dt_top_five_vehicle_makes[, vehicle_make]), vehicle_make := 'other']
+```
+
+## Pass rates
+
+Here's a plot of pass rate by `year_of_birth`. The size of the dots is the number of cars that were tested in 2016.
+
+```{r pass-rates}
+dt_pass_rate_by_year <- dt[, .(total=sum(total),
+                             pass=sum(pass),
+                             pass_rate=sum(pass)/sum(total)), by=.(year_of_birth)]
+
+ggplot(dt_pass_rate_by_year, aes(x=year_of_birth, y=pass_rate)) + 
+  geom_line() +
+  geom_point(aes(size=total)) +
+  ggtitle('NCT pass rate', 'Top 5 manufacturers in 2016') +
+  theme_minimal()
+```
+
+There aren't that many cars prior to the year 2000 so let's remove these. Also, since vehicles made in the past 4 years do not need to be tested let's remove `year_of_birth` from 2013 to 2016. 
+
+```{r pass-rates-filtered}
+dt_pass_rate_by_year <- dt[year_of_birth > 2000 & year_of_birth < 2012, 
+                           .(total=sum(total),
+                             pass=sum(pass),
+                             pass_rate=sum(pass)/sum(total)), by=.(year_of_birth)]
+
+ggplot(dt_pass_rate_by_year, aes(x=year_of_birth, y=pass_rate)) + 
+  geom_line() +
+  geom_point(aes(size=total)) +
+  ggtitle('NCT pass rate', 
+          'Top 5 manufacturers in 2016 (YOB 2000-2012') +
+  theme_minimal()
+```
