@@ -102,6 +102,12 @@ Source: CRAN
 Version: 0.2.0
 Hash: 3d6e7608e65bbf5cb170dab1e3c9ed8b
 
+Package: lubridate
+Source: CRAN
+Version: 1.7.1
+Hash: ea79088bed2a8e3900132d1b7be7a1aa
+Requires: Rcpp, stringr
+
 Package: magrittr
 Source: CRAN
 Version: 1.5

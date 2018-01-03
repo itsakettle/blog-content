@@ -1,5 +1,5 @@
 library(knitr)
-knitr::knit(input='~/blog-content/rolling_join/rolling join.Rmd', 
-            output='~/itsakettle.github.io/_posts/2016-07-26-rolling.md')
+knitr::knit(input='~/blog-content/nct/nct.Rmd', 
+            output='~/itsakettle.github.io/_posts/2017-11-26-nct.md')
 
 

@@ -69,14 +69,18 @@ dt_pass_rate_by_year <- dt[, .(total=sum(total),
 ggplot(dt_pass_rate_by_year, aes(x=year_of_birth, y=pass_rate)) + 
   geom_line() +
   geom_point(aes(size=total)) +
+  scale_x_continuous(breaks=seq(from=1900, to=2020, by=10)) +
   ggtitle('NCT pass rate', 'Top 5 manufacturers in 2016') +
-  theme_minimal()
+  theme_minimal() +
+  theme(panel.grid.minor=element_blank()) +
+  annotate('rect', xmin=2000, xmax=2012, ymin=0, ymax=1, 
+           fill='steelblue', alpha=0.2)
 ```
 
 There aren't that many cars prior to the year 2000 so let's remove these. Also, since vehicles made in the past 4 years do not need to be tested let's remove `year_of_birth` from 2013 to 2016. 
 
 ```{r pass-rates-filtered}
-dt_pass_rate_by_year <- dt[year_of_birth > 2000 & year_of_birth < 2012, 
+dt_pass_rate_by_year <- dt[year_of_birth >= 2000 & year_of_birth <= 2012, 
                            .(total=sum(total),
                              pass=sum(pass),
                              pass_rate=sum(pass)/sum(total)), by=.(year_of_birth)]
@@ -84,7 +88,25 @@ dt_pass_rate_by_year <- dt[year_of_birth > 2000 & year_of_birth < 2012,
 ggplot(dt_pass_rate_by_year, aes(x=year_of_birth, y=pass_rate)) + 
   geom_line() +
   geom_point(aes(size=total)) +
-  ggtitle('NCT pass rate', 
-          'Top 5 manufacturers in 2016 (YOB 2000-2012') +
-  theme_minimal()
+  scale_x_continuous(breaks=2000:2012) +
+  ggtitle('NCT pass rate in 2016 by vehicle year of birth') +
+  theme_minimal() +
+  theme(panel.grid.minor=element_blank()) 
+```
+
+
+```{r pass-rates-filtered-manufacturer}
+dt_pass_rate_by_year <- dt[year_of_birth >= 2000 & year_of_birth <= 2012, 
+                           .(total=sum(total),
+                             pass=sum(pass),
+                             pass_rate=sum(pass)/sum(total)), by=.(year_of_birth, vehicle_make)]
+
+ggplot(dt_pass_rate_by_year, aes(x=year_of_birth, y=pass_rate)) + 
+  geom_line(aes(color=vehicle_make)) +
+  geom_point(aes(color=vehicle_make)) +
+  scale_x_continuous(breaks=2000:2012) +
+  ggtitle('NCT pass rate in 2016 by vehicle year of birth', 
+          'Top 5 manufacturers in 2016 (YOB 2000-2012)') +
+  theme_minimal() +
+  theme(panel.grid.minor=element_blank())
 ```
