@@ -1,0 +1,8 @@
+FROM python:3.11-bullseye
+
+WORKDIR /usr/src/app
+
+COPY ./stack_overflow_much.py ./
+
+#CMD ["python", "stack_overflow_much.py"]
+CMD ["bash", "-c", "ulimit -s 80 && python stack_overflow_much.py"]
