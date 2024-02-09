@@ -1,0 +1,9 @@
+FROM gcc:11.4.0-bullseye
+
+WORKDIR /usr/src/app
+
+COPY ./stack_overflow_much.cpp ./
+
+RUN [ "g++", "stack_overflow_much.cpp", "-o", "stack_overflow_much"]
+#CMD ["bash", "-c", "ulimit -s 10000 && ./stack_overflow_much"]
+CMD ["./stack_overflow_much"]

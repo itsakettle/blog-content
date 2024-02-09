@@ -1,0 +1,8 @@
+FROM amazoncorretto
+
+WORKDIR /usr/src/app
+
+COPY ./StackOverflowMuch.java ./
+
+RUN [ "javac", "StackOverflowMuch.java"]
+CMD ["java", "EndlessRecursion"]
