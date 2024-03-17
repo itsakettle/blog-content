@@ -27,8 +27,8 @@ def polars_to_sklearn(df: pl.DataFrame):
     Y = df.select(pl.col("y")).to_numpy()
     return X, Y
 
-def fit_tree_on_sample_and_cv(df: pl.DataFrame, sample_n: int, max_depth: int, folds: int):
-    df = df.sample(n=sample_n)
+def fit_tree_on_sample_and_cv(df: pl.DataFrame, n_sample: int, max_depth: int, folds: int):
+    df = df.sample(n=n_sample)
     X, Y = polars_to_sklearn(df)
     cv_error_estimate = tree_cv_estimate(X=X, Y=Y, max_depth=max_depth, folds=folds)
     new_tree = tree.DecisionTreeRegressor(max_depth=max_depth).fit(X, Y)
@@ -56,15 +56,16 @@ def delta_cv_mean_population_error_squared():
     return delta.pow(2).alias("delta_cv_mean_population_error_squared")
 
 
-def main():
+def main(n_sample: int = 1000, n_trees: int = 1000,
+         max_depth: int = 50, folds: int = 10):
     df = create_population(n=1000009)
     population_X, population_Y = polars_to_sklearn(df=df)
     
     population_errors = []
     cv_estimates = []
     
-    for i in range(0, 1000):
-        fitted_tree, cv_estimate = fit_tree_on_sample_and_cv(df=df, sample_n=1000, max_depth=10, folds=10)
+    for i in range(0, n_trees):
+        fitted_tree, cv_estimate = fit_tree_on_sample_and_cv(df=df, n_sample=n_sample, max_depth=max_depth, folds=folds)
         error = tree_population_error(population_X=population_X,
                                   population_Y=population_Y,
                                   fitted_tree=fitted_tree)
