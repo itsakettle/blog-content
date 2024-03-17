@@ -47,6 +47,15 @@ def tree_population_error(population_X: np.ndarray, population_Y: np.ndarray, fi
 
 
 
+def delta_cv_population_error_squared():
+    delta = pl.col("population_error") - pl.col("cv_estimate")
+    return delta.pow(2).alias("delta_cv_population_error_squared")
+
+def delta_cv_mean_population_error_squared(): 
+    delta = pl.col("mean_population_error") - pl.col("cv_estimate")
+    return delta.pow(2).alias("delta_cv_mean_population_error_squared")
+
+
 def main():
     df = create_population(n=1000009)
     population_X, population_Y = polars_to_sklearn(df=df)
@@ -54,7 +63,7 @@ def main():
     population_errors = []
     cv_estimates = []
     
-    for i in range(0, 10):
+    for i in range(0, 1000):
         fitted_tree, cv_estimate = fit_tree_on_sample_and_cv(df=df, sample_n=1000, max_depth=10, folds=10)
         error = tree_population_error(population_X=population_X,
                                   population_Y=population_Y,
@@ -62,10 +71,17 @@ def main():
         population_errors.append(error)
         cv_estimates.append(cv_estimate)
 
-    df_results = pl.DataFrame({"population_error": population_errors, "cv_estimate": cv_estimates})
+    df_results = pl.DataFrame({"population_error": population_errors, 
+                               "cv_estimate": cv_estimates})
+
+    df_results = df_results.with_columns(pl.mean("population_error").alias("mean_population_error"),
+                            delta_cv_population_error_squared())\
+            .with_columns(delta_cv_mean_population_error_squared())
+
+    df_results = df_results.select(pl.mean("delta_cv_mean_population_error_squared"),
+                                   pl.mean("delta_cv_population_error_squared"))
 
     print(df_results)
-
 
 if __name__ == "__main__":
     main()
