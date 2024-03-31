@@ -57,7 +57,7 @@ def delta_cv_mean_population_error_squared():
 
 
 def main(n_sample: int = 1000, n_trees: int = 1000,
-         max_depth: int = 50, folds: int = 10):
+         max_depth: int = 10, folds: int = 10):
     df = create_population(n=1000009)
     population_X, population_Y = polars_to_sklearn(df=df)
     
@@ -79,13 +79,20 @@ def main(n_sample: int = 1000, n_trees: int = 1000,
                             delta_cv_population_error_squared())\
             .with_columns(delta_cv_mean_population_error_squared())
 
-    df_results = df_results.select(pl.mean("delta_cv_mean_population_error_squared"),
-                                   pl.mean("delta_cv_population_error_squared"))
+    paired_t_test_result = stats.ttest_rel(df_results.select("delta_cv_mean_population_error_squared").to_numpy(),
+                                           df_results.select("delta_cv_population_error_squared").to_numpy(),
+                                           alternative="less")
 
-    print(df_results)
+    df_results = df_results.select(pl.mean("delta_cv_mean_population_error_squared"),
+                                   pl.mean("delta_cv_population_error_squared"),
+                                   pl.lit(paired_t_test_result.pvalue).alias("paired_t_test_p_value"))
+
+    return df_results
 
 if __name__ == "__main__":
-    main()
+    df_results = main()
+    with pl.Config(fmt_str_lengths=50, tbl_width_chars=50):
+        print(df_results)
 
 
 
