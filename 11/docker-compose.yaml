@@ -1,8 +1,7 @@
 services:
   api:
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     build:
       context: .
       dockerfile: treasure_api.docker
@@ -10,13 +9,9 @@ services:
     ports:
       - '8000:8000'
   mysql:
-    image: mysql:8.4.0
+    build:
+      context: .
+      dockerfile: mysql.docker
     container_name: treasure_db
     environment:
       MYSQL_ROOT_PASSWORD: NotSensitive 
-    healthcheck:
-      test: ["CMD-SHELL", "test", "-e", "usr/app/src/init_complete"]
-      interval: 1s
-      timeout: 30s
-      retries: 5
-      start_period: 30s
