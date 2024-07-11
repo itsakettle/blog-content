@@ -1,0 +1,17 @@
+services:
+  api:
+    depends_on:
+      - mysql
+    build:
+      context: .
+      dockerfile: treasure_api.docker
+    container_name: treasure_api
+    ports:
+      - '8000:8000'
+  mysql:
+    build:
+      context: .
+      dockerfile: mysql.docker
+    container_name: treasure_db
+    environment:
+      MYSQL_ROOT_PASSWORD: NotSensitive 
