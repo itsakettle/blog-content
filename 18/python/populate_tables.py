@@ -1,24 +1,30 @@
-# LLM
+# LLM mostly
 
+import os
 import random
 from datetime import datetime, timedelta
 import mysql.connector
 
+PEOPLE_COUNT = 1000
+DAYS_BACK = 30
+MADE_CUPS_COUNT = 500000
+DRANK_CUPS_COUNT = 800000
+
 # ---- DB CONFIG ----
 conn = mysql.connector.connect(
-    host="localhost",
-    user="your_user",
-    password="your_password",
-    database="your_db"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
 cursor = conn.cursor()
 
 # ---- DATA ----
 tea_types = ["black", "green", "herbal", "oolong", "chai", "earl_grey"]
-people = list(range(1, 21))  # 20 people
+people = list(range(1, PEOPLE_COUNT+1))  
 now = datetime.now()
 
-def random_time(days_back=30):
+def random_time(days_back=DAYS_BACK):
     return now - timedelta(
         days=random.randint(0, days_back),
         minutes=random.randint(0, 1440)
@@ -26,7 +32,7 @@ def random_time(days_back=30):
 
 # ---- INSERT MADE CUPS ----
 made_rows = []
-for _ in range(500):
+for _ in range(MADE_CUPS_COUNT):
     made_rows.append((
         random.choice(tea_types),
         random.choice(people),
@@ -43,7 +49,7 @@ cursor.executemany(
 
 # ---- INSERT DRANK CUPS ----
 drank_rows = []
-for _ in range(800):
+for _ in range(DRANK_CUPS_COUNT):
     drank_rows.append((
         random.choice(tea_types),
         random.choice(people),
