@@ -11,7 +11,9 @@ services:
       - db_data:/var/lib/mysql
       - ./init_mysql:/docker-entrypoint-initdb.d
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: python.docker
     container_name: tea-python
     depends_on:
       - mysql
